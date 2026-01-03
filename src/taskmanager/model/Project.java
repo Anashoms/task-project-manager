@@ -1,6 +1,8 @@
 package taskmanager.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Project {
 
@@ -8,6 +10,8 @@ public class Project {
     private String goal;
     private String type;
     private LocalDate createdDate;
+    private List<Task> tasks = new ArrayList<>();
+
 
     public Project(String name, String goal, String type) {
         this.name = name;
@@ -30,5 +34,13 @@ public class Project {
 
     public LocalDate getCreatedDate() {
         return createdDate;
+    }
+    
+    public void addTask(Task task) {
+        tasks.add(task);
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
     }
 }
