@@ -14,95 +14,121 @@ public class CreateProjectUI extends JFrame {
     private JComboBox<String> typeCombo;
 
     public CreateProjectUI() {
-        setTitle("Create Project");
+        setTitle("Create New Project");
         setSize(900, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-        // ===== Background =====
+        /* ================= Background ================= */
         JPanel background = new JPanel(new GridBagLayout());
-        background.setBackground(new Color(230, 235, 240));
+        background.setBackground(new Color(235, 240, 243));
+        add(background, BorderLayout.CENTER);
 
-        // ===== Main Card =====
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setPreferredSize(new Dimension(700, 520));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        /* ================= Card Wrapper ================= */
+        JPanel cardWrapper = new JPanel(new BorderLayout());
+        cardWrapper.setPreferredSize(new Dimension(620, 520));
+        cardWrapper.setBackground(Color.WHITE);
+        cardWrapper.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(140, 90, 255), 2),
+                BorderFactory.createEmptyBorder(20, 30, 25, 30)
+        ));
 
-        // ===== Header =====
+        /* ================= Top Bar ================= */
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topBar.setOpaque(false);
+
+        JButton backBtn = new JButton("← Back to Dashboard");
+        backBtn.addActionListener(e -> {
+            new DashboardUI().setVisible(true);
+            dispose();
+        });
+
+        topBar.add(backBtn);
+        cardWrapper.add(topBar, BorderLayout.NORTH);
+
+        /* ================= Form ================= */
+        JPanel form = new JPanel();
+        form.setOpaque(false);
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+
+        // ===== Title =====
         JLabel title = new JLabel("Create New Project", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
-
-        // ===== Back Button =====
-        JButton backBtn = createSecondaryButton("← Back to Dashboard");
-        backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        backBtn.addActionListener(e -> {
-            new DashboardUI().setVisible(true);
-            dispose(); // ⭐ إغلاق الصفحة الحالية
-        });
+        title.setBorder(BorderFactory.createEmptyBorder(10, 0, 25, 0));
+        form.add(title);
 
         // ===== Project Name =====
-        JLabel nameLabel = new JLabel("Project Name");
-        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        form.add(leftLabel("Project Name"));
         nameField = new JTextField();
-        nameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        nameField.setMaximumSize(new Dimension(480, 34));
+        form.add(nameField);
+
+        form.add(Box.createVerticalStrut(15));
 
         // ===== Project Goal =====
-        JLabel goalLabel = new JLabel("Project Goal");
-        goalLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        goalArea = new JTextArea(5, 30);
+        form.add(leftLabel("Project Goal"));
+        goalArea = new JTextArea(4, 20);
         goalArea.setLineWrap(true);
         goalArea.setWrapStyleWord(true);
+
         JScrollPane goalScroll = new JScrollPane(goalArea);
+        goalScroll.setMaximumSize(new Dimension(480, 110));
+        form.add(goalScroll);
+
+        form.add(Box.createVerticalStrut(15));
 
         // ===== Project Type =====
-        JLabel typeLabel = new JLabel("Project Type");
-        typeLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        form.add(leftLabel("Project Type"));
+
+        JPanel typeRow = new JPanel(new BorderLayout(10, 0));
+        typeRow.setOpaque(false);
+        typeRow.setMaximumSize(new Dimension(480, 34));
+
         typeCombo = new JComboBox<>(
                 ProjectTypeRepository.getAllTypes().toArray(new String[0])
         );
-        typeCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
-        JButton addTypeBtn = createSecondaryButton("+ Add New Type");
+        JButton addTypeBtn = new JButton("+ Add Type");
         addTypeBtn.addActionListener(e -> addNewType());
 
+        typeRow.add(typeCombo, BorderLayout.CENTER);
+        typeRow.add(addTypeBtn, BorderLayout.EAST);
+        form.add(typeRow);
+
+        form.add(Box.createVerticalStrut(30));
+
         // ===== Save Button =====
-        JButton saveBtn = createPrimaryButton("Save Project");
-        saveBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JButton saveBtn = new JButton("Save Project");
+        saveBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        saveBtn.setBackground(new Color(45, 93, 123));
+        saveBtn.setForeground(Color.WHITE);
+        saveBtn.setFocusPainted(false);
+        saveBtn.setPreferredSize(new Dimension(220, 45));
+
         saveBtn.addActionListener(e -> saveProject());
 
-        // ===== Assemble Card =====
-        card.add(backBtn);
-        card.add(Box.createVerticalStrut(15));
-        card.add(title);
+        JPanel saveWrapper = new JPanel();
+        saveWrapper.setOpaque(false);
+        saveWrapper.add(saveBtn);
 
-        card.add(nameLabel);
-        card.add(Box.createVerticalStrut(5));
-        card.add(nameField);
+        form.add(saveWrapper);
 
-        card.add(Box.createVerticalStrut(15));
-        card.add(goalLabel);
-        card.add(Box.createVerticalStrut(5));
-        card.add(goalScroll);
-
-        card.add(Box.createVerticalStrut(15));
-        card.add(typeLabel);
-        card.add(Box.createVerticalStrut(5));
-        card.add(typeCombo);
-        card.add(Box.createVerticalStrut(10));
-        card.add(addTypeBtn);
-
-        card.add(Box.createVerticalStrut(30));
-        card.add(saveBtn);
-
-        background.add(card);
-        add(background);
+        cardWrapper.add(form, BorderLayout.CENTER);
+        background.add(cardWrapper);
     }
 
-    // ================== Save Project ==================
+    /* ================= Helpers ================= */
+    private JLabel leftLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
+        return label;
+    }
+
+    /* ================= Save Project ================= */
     private void saveProject() {
         String name = nameField.getText().trim();
         String goal = goalArea.getText().trim();
@@ -121,51 +147,17 @@ public class CreateProjectUI extends JFrame {
         Project project = new Project(name, goal, type);
         ProjectStore.addProject(project);
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Project Created Successfully!",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-
-        // ⭐ الانتقال مع إغلاق الصفحة الحالية
         new ViewAllProjectsUI().setVisible(true);
         dispose();
     }
 
-    // ================== Add New Project Type ==================
+    /* ================= Add Type ================= */
     private void addNewType() {
-        String newType = JOptionPane.showInputDialog(
-                this,
-                "Enter new project type:"
-        );
-
+        String newType = JOptionPane.showInputDialog(this, "Enter new project type:");
         if (newType != null && !newType.trim().isEmpty()) {
-            ProjectTypeRepository.addType(newType.trim());
-            typeCombo.addItem(newType.trim());
-            typeCombo.setSelectedItem(newType.trim());
+            ProjectTypeRepository.addType(newType);
+            typeCombo.addItem(newType);
+            typeCombo.setSelectedItem(newType);
         }
-    }
-
-    // ================== Button Styles ==================
-    private JButton createPrimaryButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btn.setBackground(new Color(45, 93, 123));
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(250, 45));
-        btn.setMaximumSize(new Dimension(250, 45));
-        return btn;
-    }
-
-    private JButton createSecondaryButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        btn.setBackground(new Color(230, 230, 230));
-        btn.setFocusPainted(false);
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return btn;
     }
 }

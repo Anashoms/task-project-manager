@@ -3,6 +3,8 @@ package taskmanager.ui;
 import javax.swing.*;
 import java.awt.*;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
+import java.util.Date;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -51,8 +53,17 @@ public class CreateTaskUI extends JDialog {
 
         // ===== Deadline (Date Picker) =====
         panel.add(new JLabel("Deadline:"));
+
         deadlineChooser = new JDateChooser();
+        deadlineChooser.setLocale(Locale.ENGLISH);              // ⭐ إنكليزي
         deadlineChooser.setDateFormatString("yyyy-MM-dd");
+
+        // ⭐ منع الكتابة اليدوية
+        ((JTextField) deadlineChooser.getDateEditor()
+                .getUiComponent()).setEditable(false);
+        deadlineChooser.setMinSelectableDate(new Date());
+
+
         panel.add(deadlineChooser);
 
         panel.add(Box.createVerticalStrut(10));
