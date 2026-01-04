@@ -7,10 +7,10 @@ public class DashboardUI extends JFrame {
 
     public DashboardUI() {
         setTitle("Task Manager Dashboard");
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // ملء الشاشة
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        // ===== خلفية عامة =====
+        // ===== خلفية =====
         JPanel background = new JPanel(new GridBagLayout());
         background.setBackground(new Color(220, 232, 236));
 
@@ -44,15 +44,17 @@ public class DashboardUI extends JFrame {
         // ===== ربط الأزرار =====
         createProjectBtn.addActionListener(e -> {
             new CreateProjectUI().setVisible(true);
+            this.dispose(); // ⭐ إغلاق Dashboard
         });
 
         viewProjectsBtn.addActionListener(e -> {
             new ViewAllProjectsUI().setVisible(true);
+            this.dispose(); // ⭐ إغلاق Dashboard
         });
 
         exitBtn.addActionListener(e -> System.exit(0));
 
-        // ===== إضافة العناصر للكرت =====
+        // ===== إضافة العناصر =====
         card.add(title);
         card.add(createProjectBtn);
         card.add(viewProjectsBtn);
@@ -62,7 +64,7 @@ public class DashboardUI extends JFrame {
         add(background);
     }
 
-    // ===== دالة مساعدة لإنشاء زر موحد =====
+    // ===== زر موحد =====
     private JButton createButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.BOLD, 18));

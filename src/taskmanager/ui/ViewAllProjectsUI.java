@@ -9,7 +9,6 @@ import taskmanager.service.ProjectStore;
 import taskmanager.ui.table.ButtonRenderer;
 import taskmanager.ui.table.ButtonEditor;
 
-
 public class ViewAllProjectsUI extends JFrame {
 
     private JTable table;
@@ -17,75 +16,80 @@ public class ViewAllProjectsUI extends JFrame {
 
     public ViewAllProjectsUI() {
         setTitle("All Projects");
-        setSize(1000, 550);
+        setSize(1100, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
 
-        // ===== أعمدة الجدول =====
+        // ===== Header =====
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        JLabel title = new JLabel("All Projects");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+
+        JButton createBtn = new JButton("Create Project");
+        JButton dashboardBtn = new JButton("Dashboard");
+
+        createBtn.addActionListener(e -> {
+            new CreateProjectUI().setVisible(true);
+            dispose();
+        });
+
+        dashboardBtn.addActionListener(e -> {
+            new DashboardUI().setVisible(true);
+            dispose();
+        });
+
+        actions.add(createBtn);
+        actions.add(dashboardBtn);
+
+        header.add(title, BorderLayout.WEST);
+        header.add(actions, BorderLayout.EAST);
+        add(header, BorderLayout.NORTH);
+
+        // ===== Table =====
         String[] columns = {
-        	    "Project Name",
-        	    "Project Type",
-        	    "Created Date",
-        	    "Project Goal",
-        	    "Action"
-        	};
+                "Project Name",
+                "Project Type",
+                "Created Date",
+                "Project Goal",
+                "Action"
+        };
 
-        model = new DefaultTableModel(columns, 0);
+        model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 4;
+            }
+        };
 
-        // ===== تعبئة البيانات =====
         for (Project project : ProjectStore.getProjects()) {
             model.addRow(new Object[]{
                     project.getName(),
                     project.getType(),
                     project.getCreatedDate(),
-                    project.getGoal()
+                    project.getGoal(),
+                    "Details"
             });
         }
 
         table = new JTable(model);
-        table.setRowHeight(30);
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setRowHeight(36);
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        // زر Details داخل الجدول
         table.getColumn("Action").setCellRenderer(new ButtonRenderer());
-        table.getColumn("Action").setCellEditor(new ButtonEditor(table));
+        table.getColumn("Action").setCellEditor(new ButtonEditor(this));
 
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        
-        add(scrollPane, BorderLayout.CENTER);
-
-        // ===== زر فتح المشروع =====
-        JButton openBtn = new JButton("Open Project");
-        openBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-
-        openBtn.addActionListener(e -> openSelectedProject());
-
-        // ===== تخطيط =====
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.add(openBtn);
-
-        add(scrollPane, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
+        add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
-    // ================== فتح المشروع المحدد ==================
-    private void openSelectedProject() {
-        int selectedRow = table.getSelectedRow();
-
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Please select a project first",
-                    "No Selection",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-
-        // نفس ترتيب الإدخال في ProjectStore
-        Project selectedProject = ProjectStore.getProjects().get(selectedRow);
-
-        new ProjectDetailsUI(selectedProject).setVisible(true);
+    // ⭐⭐ هذه الدالة تُستدعى من ButtonEditor
+    public void openProject(int row) {
+        Project project = ProjectStore.getProjects().get(row);
+        new ProjectDetailsUI(project).setVisible(true);
+        dispose();
     }
 }

@@ -2,14 +2,17 @@ package taskmanager.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+
+import com.toedter.calendar.JDateChooser;
 
 public class CreateTaskUI extends JDialog {
 
     private JTextField nameField;
-    private JTextField deadlineField;
+    private JTextField assigneeField;
     private JComboBox<Integer> powerCombo;
     private JComboBox<String> statusCombo;
-    private JComboBox<String> assigneeCombo;
+    private JDateChooser deadlineChooser;
 
     private ProjectDetailsUI parent;
 
@@ -17,62 +20,87 @@ public class CreateTaskUI extends JDialog {
         super(parent, "Create Task", true);
         this.parent = parent;
 
-        setSize(450, 450);
+        setSize(420, 480);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
 
-        JPanel form = new JPanel(new GridLayout(6, 2, 10, 10));
-        form.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-        form.add(new JLabel("Task Name:"));
+        // ===== Task Name =====
+        panel.add(new JLabel("Task Name:"));
         nameField = new JTextField();
-        form.add(nameField);
+        panel.add(nameField);
 
-        form.add(new JLabel("Task Power:"));
+        panel.add(Box.createVerticalStrut(10));
+
+        // ===== Assignee =====
+        panel.add(new JLabel("Assignee:"));
+        assigneeField = new JTextField();
+        panel.add(assigneeField);
+
+        panel.add(Box.createVerticalStrut(10));
+
+        // ===== Power =====
+        panel.add(new JLabel("Task Power:"));
         powerCombo = new JComboBox<>(new Integer[]{2, 3, 5, 8, 13});
-        form.add(powerCombo);
+        panel.add(powerCombo);
 
-        form.add(new JLabel("Task Status:"));
-        statusCombo = new JComboBox<>(
-                new String[]{"To Do", "Processing", "Testing", "Completed"}
-        );
-        form.add(statusCombo);
+        panel.add(Box.createVerticalStrut(10));
 
-        form.add(new JLabel("Deadline (YYYY-MM-DD):"));
-        deadlineField = new JTextField();
-        form.add(deadlineField);
+        // ===== Deadline (Date Picker) =====
+        panel.add(new JLabel("Deadline:"));
+        deadlineChooser = new JDateChooser();
+        deadlineChooser.setDateFormatString("yyyy-MM-dd");
+        panel.add(deadlineChooser);
 
-        form.add(new JLabel("Assignee:"));
-        assigneeCombo = new JComboBox<>(
-                new String[]{"Ahmed", "Sara", "Ali", "Mona"}
-        );
-        form.add(assigneeCombo);
+        panel.add(Box.createVerticalStrut(10));
 
+        // ===== Status =====
+        panel.add(new JLabel("Task Status:"));
+        statusCombo = new JComboBox<>(new String[]{
+                "To Do",
+                "Processing",
+                "Testing",
+                "Completed"
+        });
+        panel.add(statusCombo);
+
+        panel.add(Box.createVerticalStrut(20));
+
+        // ===== Save Button =====
         JButton saveBtn = new JButton("Save Task");
+        saveBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         saveBtn.addActionListener(e -> saveTask());
+        panel.add(saveBtn);
 
-        add(form, BorderLayout.CENTER);
-        add(saveBtn, BorderLayout.SOUTH);
+        add(panel, BorderLayout.CENTER);
     }
 
+    // ================== Save Task ==================
     private void saveTask() {
         String name = nameField.getText().trim();
-        String deadline = deadlineField.getText().trim();
+        String assignee = assigneeField.getText().trim();
         int power = (int) powerCombo.getSelectedItem();
         String status = (String) statusCombo.getSelectedItem();
-        String assignee = (String) assigneeCombo.getSelectedItem();
 
-        if (name.isEmpty() || deadline.isEmpty()) {
+        if (name.isEmpty() || assignee.isEmpty() || deadlineChooser.getDate() == null) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Please fill all required fields",
+                    "Please fill all fields",
                     "Error",
                     JOptionPane.ERROR_MESSAGE
             );
             return;
         }
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String deadline = sdf.format(deadlineChooser.getDate());
+
+        // ⭐ إضافة الكرت مباشرة إلى ProjectDetailsUI
         parent.addTaskCard(name, assignee, power, deadline, status);
+
         dispose();
     }
 }

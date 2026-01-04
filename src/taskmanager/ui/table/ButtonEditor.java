@@ -1,36 +1,35 @@
 package taskmanager.ui.table;
 
 import javax.swing.*;
-import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import taskmanager.model.Project;
-import taskmanager.service.ProjectStore;
-import taskmanager.ui.ProjectDetailsUI;
+import taskmanager.ui.ViewAllProjectsUI;
 
-public class ButtonEditor extends AbstractCellEditor
-        implements TableCellEditor, ActionListener {
+public class ButtonEditor extends DefaultCellEditor {
 
     private JButton button;
-    private JTable table;
     private int row;
+    private ViewAllProjectsUI parent;
 
-    public ButtonEditor(JTable table) {
-        this.table = table;
+    public ButtonEditor(ViewAllProjectsUI parent) {
+        super(new JCheckBox());
+        this.parent = parent;
+
         button = new JButton("Details");
         button.setFocusPainted(false);
-        button.addActionListener(this);
+
+        button.addActionListener(e -> {
+            fireEditingStopped();
+            parent.openProject(row);
+        });
     }
 
     @Override
     public Component getTableCellEditorComponent(
-            JTable table,
-            Object value,
-            boolean isSelected,
-            int row,
-            int column) {
+            JTable table, Object value,
+            boolean isSelected, int row, int column) {
 
         this.row = row;
         return button;
@@ -39,17 +38,5 @@ public class ButtonEditor extends AbstractCellEditor
     @Override
     public Object getCellEditorValue() {
         return "Details";
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-        // جلب المشروع الصحيح من ProjectStore
-        Project selectedProject = ProjectStore.getProjects().get(row);
-
-        // فتح صفحة تفاصيل المشروع
-        new ProjectDetailsUI(selectedProject).setVisible(true);
-
-        fireEditingStopped();
     }
 }

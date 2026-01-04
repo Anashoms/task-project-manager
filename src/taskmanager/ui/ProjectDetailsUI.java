@@ -23,10 +23,7 @@ public class ProjectDetailsUI extends JFrame {
         setLayout(new BorderLayout(10, 10));
 
         // ===== Header =====
-        JLabel title = new JLabel(
-                "Project: " + project.getName(),
-                SwingConstants.CENTER
-        );
+        JLabel title = new JLabel("Project: " + project.getName(), SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(title, BorderLayout.NORTH);
@@ -34,10 +31,7 @@ public class ProjectDetailsUI extends JFrame {
         // ===== Create Task Button =====
         JButton createTaskBtn = new JButton("Create Task");
         createTaskBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-
-        createTaskBtn.addActionListener(e -> {
-            new CreateTaskUI(this).setVisible(true);
-        });
+        createTaskBtn.addActionListener(e -> new CreateTaskUI(this).setVisible(true));
 
         JPanel bottomPanel = new JPanel();
         bottomPanel.add(createTaskBtn);
@@ -68,21 +62,25 @@ public class ProjectDetailsUI extends JFrame {
 
         JLabel label = new JLabel(title, SwingConstants.CENTER);
         label.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        panel.add(label, BorderLayout.NORTH);
+        label.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(bg);
 
-        panel.add(new JScrollPane(content), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(content);
+        scroll.setBorder(null);
 
-        // ⬅️ هذا هو المهم
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+
+        // نخزن لوحة المحتوى
         panel.putClientProperty("content", content);
 
         return panel;
     }
 
-    // ===== تستدعى من CreateTaskUI =====
+    // ===== إضافة كرت Task =====
     public void addTaskCard(
             String taskName,
             String assignee,
@@ -90,6 +88,7 @@ public class ProjectDetailsUI extends JFrame {
             String deadline,
             String status
     ) {
+
         JPanel taskCard = new JPanel();
         taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS));
         taskCard.setBackground(Color.WHITE);
@@ -97,30 +96,65 @@ public class ProjectDetailsUI extends JFrame {
                 BorderFactory.createLineBorder(Color.GRAY),
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)
         ));
+        taskCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
 
-        taskCard.add(new JLabel("📝 " + taskName));
-        taskCard.add(new JLabel("👤 " + assignee));
-        taskCard.add(new JLabel("⚡ Power: " + power));
-        taskCard.add(new JLabel("📅 " + deadline));
+        JLabel nameLabel = new JLabel("📝 " + taskName);
+        JLabel assigneeLabel = new JLabel("👤 " + assignee);
+        JLabel powerLabel = new JLabel("⚡ Power: " + power);
+        JLabel dateLabel = new JLabel("📅 " + deadline);
 
-        JPanel targetColumn;
+        JComboBox<String> statusCombo = new JComboBox<>(
+                new String[]{"To Do", "Processing", "Testing", "Completed"}
+        );
+        statusCombo.setSelectedItem(status);
 
+        taskCard.add(nameLabel);
+        taskCard.add(Box.createVerticalStrut(4));
+        taskCard.add(assigneeLabel);
+        taskCard.add(powerLabel);
+        taskCard.add(dateLabel);
+        taskCard.add(Box.createVerticalStrut(6));
+        taskCard.add(new JLabel("Status:"));
+        taskCard.add(statusCombo);
+
+        // إضافة الكرت إلى العمود الابتدائي
+        JPanel startColumn = getColumnContentByStatus(status);
+        startColumn.add(taskCard);
+        startColumn.add(Box.createVerticalStrut(8));
+        startColumn.revalidate();
+        startColumn.repaint();
+
+        // ⭐ تغيير الحالة = نقل الكرت
+        statusCombo.addActionListener(e -> {
+            String newStatus = (String) statusCombo.getSelectedItem();
+
+            JPanel oldParent = (JPanel) taskCard.getParent();
+            JPanel newParent = getColumnContentByStatus(newStatus);
+
+            if (oldParent != newParent) {
+                oldParent.remove(taskCard);
+                newParent.add(taskCard);
+                newParent.add(Box.createVerticalStrut(8));
+
+                oldParent.revalidate();
+                oldParent.repaint();
+                newParent.revalidate();
+                newParent.repaint();
+            }
+        });
+    }
+
+    // ===== إرجاع محتوى العمود حسب الحالة =====
+    private JPanel getColumnContentByStatus(String status) {
         switch (status) {
             case "Processing":
-                targetColumn = processingColumn;
-                break;
+                return (JPanel) processingColumn.getClientProperty("content");
             case "Testing":
-                targetColumn = testingColumn;
-                break;
+                return (JPanel) testingColumn.getClientProperty("content");
             case "Completed":
-                targetColumn = completedColumn;
-                break;
+                return (JPanel) completedColumn.getClientProperty("content");
             default:
-                targetColumn = todoColumn;
+                return (JPanel) todoColumn.getClientProperty("content");
         }
-
-        targetColumn.add(taskCard);
-        targetColumn.revalidate();
-        targetColumn.repaint();
     }
 }
