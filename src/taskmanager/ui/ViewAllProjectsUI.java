@@ -86,7 +86,6 @@ public class ViewAllProjectsUI extends JFrame {
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
-    // ⭐⭐ هذه الدالة تُستدعى من ButtonEditor
     public void openProject(int row) {
         Project project = ProjectStore.getProjects().get(row);
         new ProjectDetailsUI(project).setVisible(true);

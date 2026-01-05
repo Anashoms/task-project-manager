@@ -1,17 +1,24 @@
 package taskmanager.ui;
 
+import taskmanager.model.Project;
+
 import javax.swing.*;
 import java.awt.*;
-import taskmanager.model.Project;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class ProjectDetailsUI extends JFrame {
 
-    private Project project;
+    private final Project project;
 
     private JPanel todoColumn;
     private JPanel processingColumn;
     private JPanel testingColumn;
     private JPanel completedColumn;
+
+    private final SimpleDateFormat DEADLINE_FORMAT =
+            new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
 
     public ProjectDetailsUI(Project project) {
         this.project = project;
@@ -102,13 +109,13 @@ public class ProjectDetailsUI extends JFrame {
     }
 
     /* ================= Add Task Card ================= */
-    public void addTaskCard(
-            String taskName,
-            String assignee,
-            int power,
-            String deadline,
-            String status
-    ) {
+    public void addTaskCard(String taskName, String assignee, int power, String deadline, String status) {
+
+        // Wrapper حتى نحذف (الكرت + المسافة) سوا
+        JPanel wrapper = new JPanel();
+        wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
+        wrapper.setOpaque(false);
+        wrapper.setMaximumSize(new Dimension(Integer.MAX_VALUE, 205));
 
         JPanel taskCard = new JPanel();
         taskCard.setLayout(new BoxLayout(taskCard, BoxLayout.Y_AXIS));
@@ -117,7 +124,7 @@ public class ProjectDetailsUI extends JFrame {
                 BorderFactory.createLineBorder(Color.GRAY),
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)
         ));
-        taskCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
+        taskCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 190));
 
         JLabel nameLabel = new JLabel("📝 " + taskName);
         JLabel assigneeLabel = new JLabel("👤 " + assignee);
@@ -129,7 +136,6 @@ public class ProjectDetailsUI extends JFrame {
         );
         statusCombo.setSelectedItem(status);
 
-        /* ===== Buttons ===== */
         JButton editBtn = new JButton("Edit");
         JButton deleteBtn = new JButton("Delete");
 
@@ -148,38 +154,50 @@ public class ProjectDetailsUI extends JFrame {
         taskCard.add(Box.createVerticalStrut(5));
         taskCard.add(btnRow);
 
+        wrapper.add(taskCard);
+        wrapper.add(Box.createVerticalStrut(8));
+
         JPanel startColumn = getColumnContentByStatus(status);
-        startColumn.add(taskCard);
-        startColumn.add(Box.createVerticalStrut(8));
+        startColumn.add(wrapper);
         startColumn.revalidate();
+        startColumn.repaint();
 
         /* ===== Change Status ===== */
         statusCombo.addActionListener(e -> {
             String newStatus = (String) statusCombo.getSelectedItem();
-            JPanel oldParent = (JPanel) taskCard.getParent();
+
+            JPanel oldParent = (JPanel) wrapper.getParent();
             JPanel newParent = getColumnContentByStatus(newStatus);
 
-            if (oldParent != newParent) {
-                oldParent.remove(taskCard);
-                newParent.add(taskCard);
-                newParent.add(Box.createVerticalStrut(8));
+            if (oldParent != null && oldParent != newParent) {
+                oldParent.remove(wrapper);
+                newParent.add(wrapper);
                 oldParent.revalidate();
+                oldParent.repaint();
                 newParent.revalidate();
+                newParent.repaint();
+            }
+
+            // إذا صارت Completed رجّع الوضع طبيعي
+            if ("Completed".equals(newStatus)) {
+                unlockTask(taskCard, statusCombo, editBtn, deleteBtn);
+                taskCard.putClientProperty("alerted", null);
             }
         });
 
-        /* ===== Edit Task ===== */
+        /* ===== Edit ===== */
         editBtn.addActionListener(e -> {
-            new EditTaskDialog(
+            EditTaskDialog dialog = new EditTaskDialog(
                     this,
                     nameLabel,
                     assigneeLabel,
                     powerLabel,
                     dateLabel
-            ).setVisible(true);
+            );
+            dialog.setVisible(true);
         });
 
-        /* ===== Delete Task ===== */
+        /* ===== Delete ===== */
         deleteBtn.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
                     this,
@@ -189,12 +207,96 @@ public class ProjectDetailsUI extends JFrame {
             );
 
             if (confirm == JOptionPane.YES_OPTION) {
-                JPanel parent = (JPanel) taskCard.getParent();
-                parent.remove(taskCard);
-                parent.revalidate();
-                parent.repaint();
+                JPanel parentPanel = (JPanel) wrapper.getParent();
+                if (parentPanel != null) {
+                    parentPanel.remove(wrapper);
+                    parentPanel.revalidate();
+                    parentPanel.repaint();
+                }
             }
         });
+
+        /* ===== Deadline Monitor ===== */
+        startDeadlineMonitor(taskCard, statusCombo, editBtn, deleteBtn, dateLabel);
+    }
+
+    /* ================= Deadline Monitor ================= */
+    private void startDeadlineMonitor(
+            JPanel taskCard,
+            JComboBox<String> statusCombo,
+            JButton editBtn,
+            JButton deleteBtn,
+            JLabel dateLabel
+    ) {
+        // Parse من الليبل دائماً (لأنه ممكن يتغير بعد Edit)
+        Timer timer = new Timer(30_000, null); // كل 30 ثانية
+        timer.addActionListener(e -> {
+            Date deadline = parseDeadlineFromLabel(dateLabel);
+            if (deadline == null) return;
+
+            Date now = new Date();
+            long diffMs = deadline.getTime() - now.getTime();
+            long diffMinutes = diffMs / 60000;
+
+            String currentStatus = (String) statusCombo.getSelectedItem();
+
+            // لو Completed ما بدنا أي تحذير/قفل
+            if ("Completed".equals(currentStatus)) {
+                unlockTask(taskCard, statusCombo, editBtn, deleteBtn);
+                return;
+            }
+
+            // انتهى الوقت ولسا مش completed => أحمر + قفل كامل
+            if (diffMs <= 0) {
+                lockTask(taskCard, statusCombo, editBtn, deleteBtn);
+                return;
+            }
+
+            // تبقى ساعة أو أقل => لون أحمر فاتح + تنبيه مرة واحدة
+            if (diffMinutes <= 60) {
+                taskCard.setBackground(new Color(255, 170, 170));
+
+                if (taskCard.getClientProperty("alerted") == null) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "⚠ Only 1 hour (or less) left until the deadline!",
+                            "Deadline Warning",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    taskCard.putClientProperty("alerted", true);
+                }
+            } else {
+                // بعيد عن الساعة: رجّع اللون طبيعي
+                taskCard.setBackground(Color.WHITE);
+                taskCard.putClientProperty("alerted", null);
+            }
+        });
+
+        timer.setInitialDelay(0); // نفّذ فوراً أول مرة
+        timer.start();
+    }
+
+    private Date parseDeadlineFromLabel(JLabel dateLabel) {
+        try {
+            String s = dateLabel.getText().replace("📅 ", "").trim();
+            return DEADLINE_FORMAT.parse(s);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private void lockTask(JPanel taskCard, JComboBox<String> statusCombo, JButton editBtn, JButton deleteBtn) {
+        taskCard.setBackground(new Color(180, 60, 60));
+        statusCombo.setEnabled(false);
+        editBtn.setEnabled(false);
+        deleteBtn.setEnabled(false);
+    }
+
+    private void unlockTask(JPanel taskCard, JComboBox<String> statusCombo, JButton editBtn, JButton deleteBtn) {
+        taskCard.setBackground(Color.WHITE);
+        statusCombo.setEnabled(true);
+        editBtn.setEnabled(true);
+        deleteBtn.setEnabled(true);
     }
 
     /* ================= Column by Status ================= */

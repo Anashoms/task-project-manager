@@ -10,22 +10,22 @@ public class DashboardUI extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        // ===== خلفية =====
+        // ===== background =====
         JPanel background = new JPanel(new GridBagLayout());
         background.setBackground(new Color(220, 232, 236));
 
-        // ===== كرت مركزي =====
+        // =====  Central card =====
         JPanel card = new JPanel(new GridLayout(4, 1, 25, 25));
         card.setPreferredSize(new Dimension(600, 450));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        // ===== عنوان =====
+        // ===== Address =====
         JLabel title = new JLabel("Task Manager", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 28));
         title.setForeground(new Color(40, 70, 100));
 
-        // ===== أزرار =====
+        // ===== Buttons =====
         JButton createProjectBtn = createButton(
                 "Create Project",
                 new Color(45, 93, 123)
@@ -41,20 +41,20 @@ public class DashboardUI extends JFrame {
                 new Color(200, 90, 90)
         );
 
-        // ===== ربط الأزرار =====
+        // ===== Fasten the buttons =====
         createProjectBtn.addActionListener(e -> {
             new CreateProjectUI().setVisible(true);
-            this.dispose(); // ⭐ إغلاق Dashboard
+            this.dispose(); 
         });
 
         viewProjectsBtn.addActionListener(e -> {
             new ViewAllProjectsUI().setVisible(true);
-            this.dispose(); // ⭐ إغلاق Dashboard
+            this.dispose();
         });
 
         exitBtn.addActionListener(e -> System.exit(0));
 
-        // ===== إضافة العناصر =====
+        // ===== Add items =====
         card.add(title);
         card.add(createProjectBtn);
         card.add(viewProjectsBtn);
@@ -64,7 +64,7 @@ public class DashboardUI extends JFrame {
         add(background);
     }
 
-    // ===== زر موحد =====
+    // ===== Unified button =====
     private JButton createButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.BOLD, 18));

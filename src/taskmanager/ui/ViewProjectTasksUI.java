@@ -19,7 +19,7 @@ public class ViewProjectTasksUI extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // ===== أعمدة الجدول =====
+        // ===== Table columns =====
         String[] columns = {
                 "Task Name",
                 "Power",
@@ -30,7 +30,7 @@ public class ViewProjectTasksUI extends JFrame {
 
         DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-        // ===== تعبئة الجدول =====
+        // ===== Fill in the table =====
         for (Task task : project.getTasks()) {
             model.addRow(new Object[]{
                     task.getName(),

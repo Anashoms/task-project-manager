@@ -5,10 +5,10 @@ import java.time.LocalDate;
 public class Task {
 
     private String name;
-    private int power;                 // 2,3,5,8,13
-    private String status;              // To Do, Processing, Testing, Completed
+    private int power;
+    private String status;              
     private LocalDate deadline;
-    private String assignee;            // المسؤول
+    private String assignee;            
 
     public Task(String name, int power, String status,
                 LocalDate deadline, String assignee) {
