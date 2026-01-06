@@ -1,15 +1,18 @@
 package taskmanager.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import taskmanager.model.Project;
+import java.util.List;
 
 public class ProjectStore {
 
-    private static final List<Project> projects = new ArrayList<>();
+    // Loading projects from the file when running the program
+    private static List<Project> projects =
+            ProjectFileStore.loadProjects();
 
+    // Add project + save to file
     public static void addProject(Project project) {
         projects.add(project);
+        ProjectFileStore.saveProjects(projects);
     }
 
     public static List<Project> getProjects() {
