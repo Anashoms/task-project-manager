@@ -1,6 +1,7 @@
 package taskmanager.ui;
 
 import com.toedter.calendar.JDateChooser;
+import taskmanager.model.Task;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,6 +17,7 @@ public class EditTaskDialog extends JDialog {
 
     public EditTaskDialog(
             JFrame parent,
+            Task task,
             JLabel nameLabel,
             JLabel assigneeLabel,
             JLabel powerLabel,
@@ -30,28 +32,30 @@ public class EditTaskDialog extends JDialog {
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
         form.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-        JTextField nameField = new JTextField(nameLabel.getText().replace("📝 ", "").trim());
-        JTextField assigneeField = new JTextField(assigneeLabel.getText().replace("👤 ", "").trim());
-        JTextField powerField = new JTextField(powerLabel.getText().replace("⚡ Power: ", "").trim());
+        JTextField nameField = new JTextField(task.getName());
+        JTextField assigneeField = new JTextField(task.getAssignee());
+        JTextField powerField = new JTextField(String.valueOf(task.getPower()));
 
-        // ===== Date chooser =====
+        /* ===== Deadline Date ===== */
         form.add(new JLabel("Deadline Date"));
         JDateChooser deadlineChooser = new JDateChooser();
         deadlineChooser.setLocale(Locale.ENGLISH);
         deadlineChooser.setDateFormatString("yyyy-MM-dd");
         ((JTextField) deadlineChooser.getDateEditor().getUiComponent()).setEditable(false);
         deadlineChooser.setMinSelectableDate(new Date());
+        deadlineChooser.setDate(task.getDeadline());
         form.add(deadlineChooser);
 
         form.add(Box.createVerticalStrut(10));
 
-        // ===== Time spinner =====
+        /* ===== Deadline Time ===== */
         form.add(new JLabel("Deadline Time"));
         SpinnerDateModel timeModel =
-                new SpinnerDateModel(new Date(), null, null, Calendar.MINUTE);
+                new SpinnerDateModel(task.getDeadline(), null, null, Calendar.MINUTE);
 
         JSpinner timeSpinner = new JSpinner(timeModel);
-        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm");
+        JSpinner.DateEditor timeEditor =
+                new JSpinner.DateEditor(timeSpinner, "HH:mm");
         timeSpinner.setEditor(timeEditor);
         timeEditor.getTextField().setEditable(false);
         timeEditor.getTextField().setHorizontalAlignment(JTextField.CENTER);
@@ -59,7 +63,7 @@ public class EditTaskDialog extends JDialog {
 
         form.add(Box.createVerticalStrut(12));
 
-        // ===== Other fields =====
+        /* ===== Other Fields ===== */
         form.add(new JLabel("Task Name"));
         form.add(nameField);
         form.add(Box.createVerticalStrut(10));
@@ -71,22 +75,12 @@ public class EditTaskDialog extends JDialog {
         form.add(new JLabel("Power"));
         form.add(powerField);
 
-        // ===== Load current deadline into pickers =====
-        Date currentDeadline = parseDeadline(dateLabel.getText());
-        if (currentDeadline != null) {
-            deadlineChooser.setDate(currentDeadline);
-            timeSpinner.setValue(currentDeadline);
-        } else {
-            deadlineChooser.setDate(new Date());
-            timeSpinner.setValue(new Date());
-        }
-
-        // ===== Save =====
+        /* ===== Save Button ===== */
         JButton saveBtn = new JButton("Save Changes");
         saveBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
         saveBtn.addActionListener(e -> {
-            // Validate
+
             if (nameField.getText().trim().isEmpty() ||
                 assigneeField.getText().trim().isEmpty() ||
                 powerField.getText().trim().isEmpty() ||
@@ -101,7 +95,22 @@ public class EditTaskDialog extends JDialog {
                 return;
             }
 
-            Date finalDateTime = combineDateTime(deadlineChooser.getDate(), (Date) timeSpinner.getValue());
+            int power;
+            try {
+                power = Integer.parseInt(powerField.getText().trim());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Power must be a number",
+                        "Invalid Power",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            Date finalDateTime =
+                    combineDateTime(deadlineChooser.getDate(),
+                            (Date) timeSpinner.getValue());
 
             if (finalDateTime.before(new Date())) {
                 JOptionPane.showMessageDialog(
@@ -113,10 +122,17 @@ public class EditTaskDialog extends JDialog {
                 return;
             }
 
-            nameLabel.setText("📝 " + nameField.getText().trim());
-            assigneeLabel.setText("👤 " + assigneeField.getText().trim());
-            powerLabel.setText("⚡ Power: " + powerField.getText().trim());
-            dateLabel.setText("📅 " + DEADLINE_FORMAT.format(finalDateTime));
+            /* ===== Update MODEL ===== */
+            task.setName(nameField.getText().trim());
+            task.setAssignee(assigneeField.getText().trim());
+            task.setPower(power);
+            task.setDeadline(finalDateTime);
+
+            /* ===== Update UI ===== */
+            nameLabel.setText("📝 " + task.getName());
+            assigneeLabel.setText("👤 " + task.getAssignee());
+            powerLabel.setText("⚡ Power: " + task.getPower());
+            dateLabel.setText("📅 " + DEADLINE_FORMAT.format(task.getDeadline()));
 
             dispose();
         });
@@ -126,15 +142,6 @@ public class EditTaskDialog extends JDialog {
 
         add(form, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
-    }
-
-    private Date parseDeadline(String labelText) {
-        try {
-            String s = labelText.replace("📅 ", "").trim();
-            return DEADLINE_FORMAT.parse(s);
-        } catch (Exception ignored) {
-            return null;
-        }
     }
 
     private Date combineDateTime(Date date, Date time) {

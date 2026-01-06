@@ -4,11 +4,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 import com.toedter.calendar.JDateChooser;
+
+import taskmanager.model.Task;
+import taskmanager.model.SimpleTask;
 
 public class CreateTaskUI extends JDialog {
 
@@ -108,14 +110,10 @@ public class CreateTaskUI extends JDialog {
         DecimalFormatSymbols symbols =
                 new DecimalFormatSymbols(Locale.US);
 
-        DecimalFormat format = new DecimalFormat("00", symbols);
-
         JSpinner.NumberEditor editor =
-                new JSpinner.NumberEditor(spinner);
+                new JSpinner.NumberEditor(spinner, "00");
 
-        editor.getFormat().setDecimalFormatSymbols(symbols);
         editor.getTextField().setEditable(false);
-
         spinner.setEditor(editor);
 
         return spinner;
@@ -161,12 +159,9 @@ public class CreateTaskUI extends JDialog {
             return;
         }
 
-        SimpleDateFormat sdf =
-                new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
-
-        String deadline = sdf.format(finalDateTime);
-
-        parent.addTaskCard(name, assignee, power, deadline, status);
+        // ✅ Create real Task object (MODEL)
+        Task task = new SimpleTask(name, assignee, power, finalDateTime, status);
+        parent.addTask(task);
         dispose();
     }
 }

@@ -10,22 +10,22 @@ public class DashboardUI extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        // ===== background =====
+        /* ===== Background ===== */
         JPanel background = new JPanel(new GridBagLayout());
         background.setBackground(new Color(220, 232, 236));
 
-        // =====  Central card =====
+        /* ===== Central Card ===== */
         JPanel card = new JPanel(new GridLayout(4, 1, 25, 25));
         card.setPreferredSize(new Dimension(600, 450));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        // ===== Address =====
+        /* ===== Title ===== */
         JLabel title = new JLabel("Task Manager", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 28));
         title.setForeground(new Color(40, 70, 100));
 
-        // ===== Buttons =====
+        /* ===== Buttons ===== */
         JButton createProjectBtn = createButton(
                 "Create Project",
                 new Color(45, 93, 123)
@@ -41,20 +41,20 @@ public class DashboardUI extends JFrame {
                 new Color(200, 90, 90)
         );
 
-        // ===== Fasten the buttons =====
+        /* ===== Button Actions ===== */
         createProjectBtn.addActionListener(e -> {
             new CreateProjectUI().setVisible(true);
-            this.dispose(); 
+            dispose();
         });
 
         viewProjectsBtn.addActionListener(e -> {
             new ViewAllProjectsUI().setVisible(true);
-            this.dispose();
+            dispose();
         });
 
         exitBtn.addActionListener(e -> System.exit(0));
 
-        // ===== Add items =====
+        /* ===== Add Components ===== */
         card.add(title);
         card.add(createProjectBtn);
         card.add(viewProjectsBtn);
@@ -64,7 +64,7 @@ public class DashboardUI extends JFrame {
         add(background);
     }
 
-    // ===== Unified button =====
+    /* ===== Unified Button Style ===== */
     private JButton createButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.BOLD, 18));

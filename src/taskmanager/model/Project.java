@@ -10,16 +10,30 @@ public class Project {
     private String goal;
     private String type;
     private LocalDate createdDate;
-    private List<Task> tasks = new ArrayList<>();
-
+    private List<Task> tasks;
 
     public Project(String name, String goal, String type) {
         this.name = name;
         this.goal = goal;
         this.type = type;
         this.createdDate = LocalDate.now();
+        this.tasks = new ArrayList<>();
     }
 
+    // ===== Task Operations =====
+    public void addTask(Task task) {
+        tasks.add(task);
+    }
+
+    public void removeTask(Task task) {
+        tasks.remove(task);
+    }
+
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
+    // ===== Getters =====
     public String getName() {
         return name;
     }
@@ -34,13 +48,5 @@ public class Project {
 
     public LocalDate getCreatedDate() {
         return createdDate;
-    }
-    
-    public void addTask(Task task) {
-        tasks.add(task);
-    }
-
-    public List<Task> getTasks() {
-        return tasks;
     }
 }

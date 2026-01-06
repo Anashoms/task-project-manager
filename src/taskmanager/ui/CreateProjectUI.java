@@ -52,14 +52,13 @@ public class CreateProjectUI extends JFrame {
         form.setOpaque(false);
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
 
-        // ===== Title =====
         JLabel title = new JLabel("Create New Project", SwingConstants.CENTER);
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         title.setBorder(BorderFactory.createEmptyBorder(10, 0, 25, 0));
         form.add(title);
 
-        // ===== Project Name =====
+        /* ===== Project Name ===== */
         form.add(leftLabel("Project Name"));
         nameField = new JTextField();
         nameField.setMaximumSize(new Dimension(480, 34));
@@ -67,7 +66,7 @@ public class CreateProjectUI extends JFrame {
 
         form.add(Box.createVerticalStrut(15));
 
-        // ===== Project Goal =====
+        /* ===== Project Goal ===== */
         form.add(leftLabel("Project Goal"));
         goalArea = new JTextArea(4, 20);
         goalArea.setLineWrap(true);
@@ -79,7 +78,7 @@ public class CreateProjectUI extends JFrame {
 
         form.add(Box.createVerticalStrut(15));
 
-        // ===== Project Type =====
+        /* ===== Project Type ===== */
         form.add(leftLabel("Project Type"));
 
         JPanel typeRow = new JPanel(new BorderLayout(10, 0));
@@ -99,7 +98,7 @@ public class CreateProjectUI extends JFrame {
 
         form.add(Box.createVerticalStrut(30));
 
-        // ===== Save Button =====
+        /* ===== Save Button ===== */
         JButton saveBtn = new JButton("Save Project");
         saveBtn.setFont(new Font("Segoe UI", Font.BOLD, 16));
         saveBtn.setBackground(new Color(45, 93, 123));
@@ -151,7 +150,7 @@ public class CreateProjectUI extends JFrame {
         dispose();
     }
 
-    /* ================= Add Type ================= */
+    /* ================= Add New Type ================= */
     private void addNewType() {
         String newType = JOptionPane.showInputDialog(this, "Enter new project type:");
         if (newType != null && !newType.trim().isEmpty()) {

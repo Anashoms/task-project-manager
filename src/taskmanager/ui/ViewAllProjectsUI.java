@@ -1,13 +1,13 @@
 package taskmanager.ui;
 
+import taskmanager.model.Project;
+import taskmanager.service.ProjectStore;
+import taskmanager.ui.table.ButtonEditor;
+import taskmanager.ui.table.ButtonRenderer;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-
-import taskmanager.model.Project;
-import taskmanager.service.ProjectStore;
-import taskmanager.ui.table.ButtonRenderer;
-import taskmanager.ui.table.ButtonEditor;
 
 public class ViewAllProjectsUI extends JFrame {
 
@@ -21,7 +21,7 @@ public class ViewAllProjectsUI extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
 
-        // ===== Header =====
+        /* ===== Header ===== */
         JPanel header = new JPanel(new BorderLayout());
         header.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
@@ -50,7 +50,7 @@ public class ViewAllProjectsUI extends JFrame {
         header.add(actions, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // ===== Table =====
+        /* ===== Table ===== */
         String[] columns = {
                 "Project Name",
                 "Project Type",
@@ -86,6 +86,7 @@ public class ViewAllProjectsUI extends JFrame {
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
+    /* ===== Open Project Details ===== */
     public void openProject(int row) {
         Project project = ProjectStore.getProjects().get(row);
         new ProjectDetailsUI(project).setVisible(true);

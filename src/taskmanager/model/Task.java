@@ -18,8 +18,7 @@ public abstract class Task {
         this.status = status;
     }
 
-    public abstract boolean isOverdue();
-    public abstract boolean isNearDeadline();
+    // ===== Getters & Setters =====
 
     public String getName() {
         return name;
@@ -40,4 +39,28 @@ public abstract class Task {
     public String getStatus() {
         return status;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAssignee(String assignee) {
+        this.assignee = assignee;
+    }
+
+    public void setPower(int power) {
+        this.power = power;
+    }
+
+    public void setDeadline(Date deadline) {
+        this.deadline = deadline;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    // ===== Abstract Methods =====
+    public abstract boolean isOverdue();
+    public abstract boolean isNearDeadline();
 }

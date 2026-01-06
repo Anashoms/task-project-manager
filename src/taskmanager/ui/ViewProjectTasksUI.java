@@ -1,15 +1,20 @@
 package taskmanager.ui;
 
+import taskmanager.model.Project;
+import taskmanager.model.Task;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-
-import taskmanager.model.Project;
-import taskmanager.model.Task;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class ViewProjectTasksUI extends JFrame {
 
     private Project project;
+
+    private final SimpleDateFormat DEADLINE_FORMAT =
+            new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH);
 
     public ViewProjectTasksUI(Project project) {
         this.project = project;
@@ -18,8 +23,9 @@ public class ViewProjectTasksUI extends JFrame {
         setSize(900, 500);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-        // ===== Table columns =====
+        /* ===== Table columns ===== */
         String[] columns = {
                 "Task Name",
                 "Power",
@@ -30,13 +36,13 @@ public class ViewProjectTasksUI extends JFrame {
 
         DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-        // ===== Fill in the table =====
+        /* ===== Fill table from MODEL ===== */
         for (Task task : project.getTasks()) {
             model.addRow(new Object[]{
                     task.getName(),
                     task.getPower(),
                     task.getStatus(),
-                    task.getDeadline(),
+                    DEADLINE_FORMAT.format(task.getDeadline()),
                     task.getAssignee()
             });
         }

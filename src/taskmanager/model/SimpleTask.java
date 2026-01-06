@@ -15,7 +15,7 @@ public class SimpleTask extends Task {
 
     @Override
     public boolean isNearDeadline() {
-        long diffMs = deadline.getTime() - new Date().getTime();
-        return diffMs > 0 && diffMs <= 60 * 60 * 1000;
+        long diff = deadline.getTime() - System.currentTimeMillis();
+        return diff > 0 && diff <= 60 * 60 * 1000;
     }
 }

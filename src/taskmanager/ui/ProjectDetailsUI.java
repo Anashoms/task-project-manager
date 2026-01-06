@@ -1,6 +1,7 @@
 package taskmanager.ui;
 
 import taskmanager.model.Project;
+import taskmanager.model.Task;
 
 import javax.swing.*;
 import java.awt.*;
@@ -81,6 +82,11 @@ public class ProjectDetailsUI extends JFrame {
         JPanel bottom = new JPanel();
         bottom.add(createTaskBtn);
         add(bottom, BorderLayout.SOUTH);
+
+        /* ===== Load existing tasks (important) ===== */
+        for (Task task : project.getTasks()) {
+            addTaskCard(task);
+        }
     }
 
     /* ================= Column ================= */
@@ -106,8 +112,14 @@ public class ProjectDetailsUI extends JFrame {
         return panel;
     }
 
-    /* ================= Add Task Card ================= */
-    public void addTaskCard(String taskName, String assignee, int power, String deadline, String status) {
+    /* ================= ADD TASK (MODEL ENTRY POINT) ================= */
+    public void addTask(Task task) {
+        project.addTask(task);
+        addTaskCard(task);
+    }
+
+    /* ================= ADD TASK CARD ================= */
+    private void addTaskCard(Task task) {
 
         JPanel wrapper = new JPanel();
         wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
@@ -121,16 +133,16 @@ public class ProjectDetailsUI extends JFrame {
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)
         ));
 
-        JLabel nameLabel = new JLabel("📝 " + taskName);
-        JLabel assigneeLabel = new JLabel("👤 " + assignee);
-        JLabel powerLabel = new JLabel("⚡ Power: " + power);
-        JLabel dateLabel = new JLabel("📅 " + deadline);
+        JLabel nameLabel = new JLabel("📝 " + task.getName());
+        JLabel assigneeLabel = new JLabel("👤 " + task.getAssignee());
+        JLabel powerLabel = new JLabel("⚡ Power: " + task.getPower());
+        JLabel dateLabel = new JLabel("📅 " + DEADLINE_FORMAT.format(task.getDeadline()));
 
         JComboBox<String> statusCombo = new JComboBox<>(
                 new String[]{"To Do", "Processing", "Testing", "Completed"}
         );
         statusCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        statusCombo.setSelectedItem(status);
+        statusCombo.setSelectedItem(task.getStatus());
 
         JButton editBtn = new JButton("Edit");
         JButton deleteBtn = new JButton("Delete");
@@ -151,14 +163,15 @@ public class ProjectDetailsUI extends JFrame {
         wrapper.add(taskCard);
         wrapper.add(Box.createVerticalStrut(8));
 
-        JPanel startColumn = getColumnContentByStatus(status);
+        JPanel startColumn = getColumnContentByStatus(task.getStatus());
         startColumn.add(wrapper);
         startColumn.revalidate();
         startColumn.repaint();
 
-        /* ===== FIX 1: Change Status (MOVE CARD) ===== */
+        /* ===== Change Status ===== */
         statusCombo.addActionListener(e -> {
             String newStatus = (String) statusCombo.getSelectedItem();
+            task.setStatus(newStatus);
 
             JPanel oldParent = (JPanel) wrapper.getParent();
             JPanel newParent = getColumnContentByStatus(newStatus);
@@ -169,21 +182,24 @@ public class ProjectDetailsUI extends JFrame {
 
                 oldParent.revalidate();
                 oldParent.repaint();
+
                 newParent.revalidate();
                 newParent.repaint();
             }
         });
 
-        /* ===== FIX 2: Edit Button ===== */
-        editBtn.addActionListener(e -> {
-            new EditTaskDialog(
-                    this,
-                    nameLabel,
-                    assigneeLabel,
-                    powerLabel,
-                    dateLabel
-            ).setVisible(true);
-        });
+
+        /* ===== Edit ===== */
+        editBtn.addActionListener(e ->
+                new EditTaskDialog(
+                        this,
+                        task,
+                        nameLabel,
+                        assigneeLabel,
+                        powerLabel,
+                        dateLabel
+                ).setVisible(true)
+        );
 
         /* ===== Delete ===== */
         deleteBtn.addActionListener(e -> {
@@ -194,63 +210,13 @@ public class ProjectDetailsUI extends JFrame {
                     JOptionPane.YES_NO_OPTION
             );
             if (confirm == JOptionPane.YES_OPTION) {
+                project.removeTask(task);
                 JPanel parent = (JPanel) wrapper.getParent();
                 parent.remove(wrapper);
                 parent.revalidate();
                 parent.repaint();
             }
         });
-
-        startDeadlineMonitor(taskCard, statusCombo, editBtn, deleteBtn, dateLabel);
-    }
-
-    /* ================= Deadline Monitor ================= */
-    private void startDeadlineMonitor(
-            JPanel taskCard,
-            JComboBox<String> statusCombo,
-            JButton editBtn,
-            JButton deleteBtn,
-            JLabel dateLabel
-    ) {
-        Timer timer = new Timer(30_000, e -> {
-            try {
-                Date deadline = DEADLINE_FORMAT.parse(
-                        dateLabel.getText().replace("📅 ", "")
-                );
-
-                long diffMs = deadline.getTime() - new Date().getTime();
-                long diffMin = diffMs / 60000;
-
-                if ("Completed".equals(statusCombo.getSelectedItem())) {
-                    unlockTask(taskCard, statusCombo, editBtn, deleteBtn);
-                    return;
-                }
-
-                if (diffMs <= 0) {
-                    lockTask(taskCard, statusCombo, editBtn, deleteBtn);
-                } else if (diffMin <= 60) {
-                    taskCard.setBackground(new Color(255, 170, 170));
-                } else {
-                    taskCard.setBackground(Color.WHITE);
-                }
-            } catch (Exception ignored) {}
-        });
-        timer.setInitialDelay(0);
-        timer.start();
-    }
-
-    private void lockTask(JPanel card, JComboBox<?> combo, JButton e, JButton d) {
-        card.setBackground(new Color(180, 60, 60));
-        combo.setEnabled(false);
-        e.setEnabled(false);
-        d.setEnabled(false);
-    }
-
-    private void unlockTask(JPanel card, JComboBox<?> combo, JButton e, JButton d) {
-        card.setBackground(Color.WHITE);
-        combo.setEnabled(true);
-        e.setEnabled(true);
-        d.setEnabled(true);
     }
 
     private JPanel getColumnContentByStatus(String status) {
